@@ -43,11 +43,13 @@ public class Simple {
         Map<String, String> config = getSettings();
         String enabled = config.getOrDefault(LIGHTSTEP_ENABLED_ENVVAR, LIGHTSTEP_ENABLED_DEFAUlT);
         String verbose = config.getOrDefault(LIGHTSTEP_VERBOSE_ENVVAR, String.valueOf(LIGHTSTEP_VERBOSITY_DEFAULT));
+        String accesstoken = config.getOrDefault(LIGHTSTEP_ACCESSTOKEN_ENVVAR, "");
+        LOGGER.info("settings enabled={}. accesstoken={}. verbosity ={}.", enabled, accesstoken, verbose);
         int verbosity = Integer.parseInt(verbose);
         LOGGER.info("settings enabled={}. verbosity ={}.", enabled, verbosity);
         // TODO unable to use http to our http collector.
         Options options = new Options.OptionsBuilder()
-                .withAccessToken(config.getOrDefault(LIGHTSTEP_ACCESSTOKEN_ENVVAR, ""))
+                .withAccessToken(accesstoken)
                 .withComponentName("java sample")
                 .withCollectorProtocol(LIGHTSTEP_COLLECTORPROTOCOL_DEFAUlT)
                 .withCollectorHost(LIGHTSTEP_COLLECTORHOST_DEFAULT)
