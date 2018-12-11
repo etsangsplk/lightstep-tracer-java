@@ -44,9 +44,7 @@ public class Simple {
         String enabled = config.getOrDefault(LIGHTSTEP_ENABLED_ENVVAR, LIGHTSTEP_ENABLED_DEFAUlT);
         String verbose = config.getOrDefault(LIGHTSTEP_VERBOSE_ENVVAR, String.valueOf(LIGHTSTEP_VERBOSITY_DEFAULT));
         String accesstoken = config.getOrDefault(LIGHTSTEP_ACCESSTOKEN_ENVVAR, "");
-        LOGGER.info("settings enabled={}. accesstoken={}. verbosity ={}.", enabled, accesstoken, verbose);
         int verbosity = Integer.parseInt(verbose);
-        LOGGER.info("settings enabled={}. verbosity ={}.", enabled, verbosity);
         // TODO unable to use http to our http collector.
         Options options = new Options.OptionsBuilder()
                 .withAccessToken(accesstoken)
@@ -133,18 +131,23 @@ public class Simple {
     }
 
     public static Map<String, String> getSettings() {
-        String enabled = getEnv(LIGHTSTEP_ENABLED_ENVVAR,LIGHTSTEP_ENABLED_DEFAUlT);
-        String accessToken = getEnv(LIGHTSTEP_ACCESSTOKEN_ENVVAR, "");
-        String verbose  = getEnv(LIGHTSTEP_VERBOSE_ENVVAR, String.valueOf(LIGHTSTEP_VERBOSITY_DEFAULT));
-        HashMap<String, String> config = new HashMap<String, String>();
-        config.put("enabled", enabled);
-        config.put("access_token", accessToken);
-        config.put("verbose", verbose);
+        String enabled = getProperty(LIGHTSTEP_ENABLED_ENVVAR, LIGHTSTEP_ENABLED_DEFAUlT);
+        String accessToken = getProperty(LIGHTSTEP_ACCESSTOKEN_ENVVAR, "");
+        String verbose  = getProperty(LIGHTSTEP_VERBOSE_ENVVAR, String.valueOf(LIGHTSTEP_VERBOSITY_DEFAULT));
+        HashMap<String, String> config = new HashMap<>();
+        config.put(LIGHTSTEP_ENABLED_ENVVAR, enabled);
+        config.put(LIGHTSTEP_ACCESSTOKEN_ENVVAR, accessToken);
+        config.put(LIGHTSTEP_VERBOSE_ENVVAR, verbose);
         return config;
     }
 
     private static String getEnv(String key, String defaultValue) {
         String result = System.getenv(key);
+        return result != null ? result : defaultValue;
+    }
+
+    private static String getProperty(String key, String defaultValue) {
+        String result = System.getProperty(key);
         return result != null ? result : defaultValue;
     }
 

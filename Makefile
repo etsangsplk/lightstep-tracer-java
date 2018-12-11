@@ -1,5 +1,8 @@
 .PHONY: build publish ci_build ci_test clean test inc-version
 
+env:
+	echo ${LIGHTSTEP_ENABLED} ${LIGHTSTEP_ACCESS_TOKEN}  ${LIGHTSTEP_VERBOSE}
+
 build: test
 	mvn package
 
