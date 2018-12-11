@@ -37,21 +37,21 @@ public class Simple {
     public static final String LIGHTSTEP_ENABLED_DEFAUlT = "false";
     public static int LIGHTSTEP_VERBOSITY_DEFAULT = Options.VERBOSITY_INFO;
 
+    public static final String serviceName = Simple.class.getName();
+
     public static void main(String[] args) throws InterruptedException, MalformedURLException {
-        LOGGER.info("Starting Simple example...");
+        LOGGER.info("Starting Simple example...service name {}.", serviceName);
 
         Map<String, String> config = getSettings();
         String enabled = config.getOrDefault(LIGHTSTEP_ENABLED_ENVVAR, LIGHTSTEP_ENABLED_DEFAUlT);
         String verbose = config.getOrDefault(LIGHTSTEP_VERBOSE_ENVVAR, String.valueOf(LIGHTSTEP_VERBOSITY_DEFAULT));
         String accesstoken = config.getOrDefault(LIGHTSTEP_ACCESSTOKEN_ENVVAR, "");
         int verbosity = Integer.parseInt(verbose);
+
         // TODO unable to use http to our http collector.
         Options options = new Options.OptionsBuilder()
                 .withAccessToken(accesstoken)
-                .withComponentName("java sample")
-                .withCollectorProtocol(LIGHTSTEP_COLLECTORPROTOCOL_DEFAUlT)
-                .withCollectorHost(LIGHTSTEP_COLLECTORHOST_DEFAULT)
-                .withCollectorPort(LIGHTSTEP_COLLECTORPORT_DEFAULT)
+                .withComponentName(serviceName)
                 .withVerbosity(verbosity)
                 .build();
 
