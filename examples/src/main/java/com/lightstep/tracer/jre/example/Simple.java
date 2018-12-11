@@ -5,11 +5,13 @@ import com.lightstep.tracer.shared.Options;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
+import io.opentracing.noop.NoopTracerFactory;
 import io.opentracing.propagation.Format;
 import io.opentracing.propagation.TextMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -130,6 +132,7 @@ public class Simple {
         LOGGER.info("done!");
     }
 
+
     public static Map<String, String> getSettings() {
         String enabled = getProperty(LIGHTSTEP_ENABLED_ENVVAR, LIGHTSTEP_ENABLED_DEFAUlT);
         String accessToken = getProperty(LIGHTSTEP_ACCESSTOKEN_ENVVAR, "");
@@ -139,6 +142,33 @@ public class Simple {
         config.put(LIGHTSTEP_ACCESSTOKEN_ENVVAR, accessToken);
         config.put(LIGHTSTEP_VERBOSE_ENVVAR, verbose);
         return config;
+    }
+
+    private static Tracer getTracer() {
+        try {
+            LOGGER.info("Starting Simple example...service name {}.", serviceName);
+            Map<String, String> config = getSettings();
+            String enabled = config.getOrDefault(LIGHTSTEP_ENABLED_ENVVAR, LIGHTSTEP_ENABLED_DEFAUlT);
+            String verbose = config.getOrDefault(LIGHTSTEP_VERBOSE_ENVVAR, String.valueOf(LIGHTSTEP_VERBOSITY_DEFAULT));
+            String accesstoken = config.getOrDefault(LIGHTSTEP_ACCESSTOKEN_ENVVAR, "");
+            int verbosity = Integer.parseInt(verbose);
+
+            // TODO unable to use http to our http collector.
+            Options options = new Options.OptionsBuilder()
+                    .withAccessToken(accesstoken)
+                    .withComponentName(serviceName)
+                    .withVerbosity(verbosity)
+                    .build();
+            Tracer tracer = new JRETracer(options);
+            LOGGER.info("Tracer initialized with serviceName", serviceName);
+            return tracer;
+        } catch (MalformedURLException ex) {
+            LOGGER.warn("Tracer initialized failed with exception={}. returning NoopTracer. ", ex.getMessage());
+            return NoopTracerFactory.create();
+        } catch (IOException ex ){
+            LOGGER.warn("Tracer initialized failed with exception={}. returning NoopTracer. ", ex.getMessage());
+            return NoopTracerFactory.create();
+        }
     }
 
     private static String getEnv(String key, String defaultValue) {
