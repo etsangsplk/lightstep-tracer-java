@@ -43,21 +43,7 @@ public class Simple {
 
     public static void main(String[] args) throws InterruptedException, MalformedURLException {
         LOGGER.info("Starting Simple example...service name {}.", serviceName);
-
-        Map<String, String> config = getSettings();
-        String enabled = config.getOrDefault(LIGHTSTEP_ENABLED_ENVVAR, LIGHTSTEP_ENABLED_DEFAUlT);
-        String verbose = config.getOrDefault(LIGHTSTEP_VERBOSE_ENVVAR, String.valueOf(LIGHTSTEP_VERBOSITY_DEFAULT));
-        String accesstoken = config.getOrDefault(LIGHTSTEP_ACCESSTOKEN_ENVVAR, "");
-        int verbosity = Integer.parseInt(verbose);
-
-        // TODO unable to use http to our http collector.
-        Options options = new Options.OptionsBuilder()
-                .withAccessToken(accesstoken)
-                .withComponentName(serviceName)
-                .withVerbosity(verbosity)
-                .build();
-
-        final Tracer tracer = new JRETracer(options);
+        final Tracer tracer = getTracer();
 
         // Create a simple span and delay for a while to ensure the reporting
         // loop works as expected
@@ -127,7 +113,7 @@ public class Simple {
 
         parentSpan.finish();
 
-        ((com.lightstep.tracer.jre.JRETracer) tracer).flush(20000);
+        flush(tracer);
 
         LOGGER.info("done!");
     }
@@ -146,13 +132,19 @@ public class Simple {
 
     private static Tracer getTracer() {
         try {
-            LOGGER.info("Starting Simple example...service name {}.", serviceName);
             Map<String, String> config = getSettings();
             String enabled = config.getOrDefault(LIGHTSTEP_ENABLED_ENVVAR, LIGHTSTEP_ENABLED_DEFAUlT);
+
+            Boolean tracerEnabled = Boolean.parseBoolean(enabled);
+            if (tracerEnabled == false) {
+                LOGGER.info("Tracer disabled. Returning NoopTracer.");
+                return NoopTracerFactory.create();
+            }
+
             String verbose = config.getOrDefault(LIGHTSTEP_VERBOSE_ENVVAR, String.valueOf(LIGHTSTEP_VERBOSITY_DEFAULT));
             String accesstoken = config.getOrDefault(LIGHTSTEP_ACCESSTOKEN_ENVVAR, "");
             int verbosity = Integer.parseInt(verbose);
-
+            LOGGER.info("Initializing tracer with service name {}.", serviceName);
             // TODO unable to use http to our http collector.
             Options options = new Options.OptionsBuilder()
                     .withAccessToken(accesstoken)
@@ -162,7 +154,9 @@ public class Simple {
             Tracer tracer = new JRETracer(options);
             LOGGER.info("Tracer initialized with serviceName", serviceName);
             return tracer;
+
         } catch (MalformedURLException ex) {
+            // TODO: Don't know whay Malformed exception is not caught here.
             LOGGER.warn("Tracer initialized failed with exception={}. returning NoopTracer. ", ex.getMessage());
             return NoopTracerFactory.create();
         } catch (IOException ex ){
@@ -181,6 +175,11 @@ public class Simple {
         return result != null ? result : defaultValue;
     }
 
+    private static void flush(Tracer tracer) {
+         if(tracer instanceof com.lightstep.tracer.jre.JRETracer) {
+            ((com.lightstep.tracer.jre.JRETracer) tracer).flush(20000);
+         }
+    }
     // An ultra-hacky demonstration of inject() and extract() in-process.
     private static Span createChildViaInjectExtract(Tracer tracer, SpanContext parentCtx) {
         final Map<String, String> textMap = new HashMap<>();
