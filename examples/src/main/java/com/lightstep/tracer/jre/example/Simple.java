@@ -32,7 +32,7 @@ public class Simple {
 
     public static final String LIGHTSTEP_COLLECTORHOST_DEFAULT = "collector.lightstep.com";
     public static final int LIGHTSTEP_COLLECTORPORT_DEFAULT = 443;
-    public static final String LIGHTSTEP_COLLECTORPROTOCOL_DEFAUlT = Options.HTTP;
+    public static final String LIGHTSTEP_COLLECTORPROTOCOL_DEFAUlT = "http";
 
     public static final String LIGHTSTEP_ENABLED_DEFAUlT = "false";
     public static int LIGHTSTEP_VERBOSITY_DEFAULT = Options.VERBOSITY_INFO;
@@ -41,8 +41,10 @@ public class Simple {
         LOGGER.info("Starting Simple example...");
 
         Map<String, String> config = getSettings();
-        String verbose = config.getOrDefault(LIGHTSTEP_ENABLED_ENVVAR, String.valueOf(LIGHTSTEP_VERBOSITY_DEFAULT));
+        String enabled = config.getOrDefault(LIGHTSTEP_ENABLED_ENVVAR, LIGHTSTEP_ENABLED_DEFAUlT);
+        String verbose = config.getOrDefault(LIGHTSTEP_VERBOSE_ENVVAR, String.valueOf(LIGHTSTEP_VERBOSITY_DEFAULT));
         int verbosity = Integer.parseInt(verbose);
+        LOGGER.info("settings enabled={}. verbosity ={}.", enabled, verbosity);
         // TODO unable to use http to our http collector.
         Options options = new Options.OptionsBuilder()
                 .withAccessToken(config.getOrDefault(LIGHTSTEP_ACCESSTOKEN_ENVVAR, ""))
