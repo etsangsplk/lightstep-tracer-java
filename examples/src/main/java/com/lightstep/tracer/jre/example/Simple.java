@@ -9,6 +9,7 @@ import io.opentracing.propagation.Format;
 import io.opentracing.propagation.TextMap;
 
 import java.net.MalformedURLException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -21,13 +22,22 @@ public class Simple {
     private static final String MESSAGE_KEY = "message";
     private static final String PAYLOAD_KEY = "payload";
 
+    public static final String LIGHTSTEP_ENABLED_ENVVAR  = "LIGHTSTEP_ENABLED";
+    public static final String LIGHTSTEP_ACCESSTOKEN_ENVVAR = "LIGHTSTEP_ACCESS_TOKEN";
+    public static final String LIGHTSTEP_VERBOSE_ENVVAR = "LIGHTSTEP_VERBOSE";
+
+    public static final String LIGHTSTEP_ENABLED_DEFAUlT = "false";
+    public static int LIGHTSTEP_VERBOSITY_DEFAULT = Options.VERBOSITY_INFO;
+
     public static void main(String[] args) throws InterruptedException, MalformedURLException {
         System.out.println("Starting Simple example...");
-
+        Map<String, String> config = getSettings();
+        String verbose = config.getOrDefault(LIGHTSTEP_ENABLED_ENVVAR, String.valueOf(LIGHTSTEP_VERBOSITY_DEFAULT));
+        int verbosity = Integer.parseInt(verbose);
         Options options = new Options.OptionsBuilder()
-                .withAccessToken("{your_access_token}")
-                .withComponentName("JRE Simple")
-                .withVerbosity(4)
+                .withAccessToken(config.getOrDefault(LIGHTSTEP_ACCESSTOKEN_ENVVAR, ""))
+                .withComponentName("java sample")
+                .withVerbosity(verbosity)
                 .build();
         final Tracer tracer = new JRETracer(options);
 
@@ -101,6 +111,22 @@ public class Simple {
 
         ((com.lightstep.tracer.jre.JRETracer) tracer).flush(20000);
         System.out.println("Done!");
+    }
+
+    public static Map<String, String> getSettings() {
+        String enabled = getEnv(LIGHTSTEP_ENABLED_ENVVAR,LIGHTSTEP_ENABLED_DEFAUlT);
+        String accessToken = getEnv(LIGHTSTEP_ACCESSTOKEN_ENVVAR, "");
+        String verbose  = getEnv(LIGHTSTEP_VERBOSE_ENVVAR, String.valueOf(LIGHTSTEP_VERBOSITY_DEFAULT));
+        HashMap<String, String> config = new HashMap<String, String>();
+        config.put("enabled", enabled);
+        config.put("access_token", accessToken);
+        config.put("verbose", verbose);
+        return config;
+    }
+
+    private static String getEnv(String key, String defaultValue) {
+        String result = System.getenv(key);
+        return result != null ? result : defaultValue;
     }
 
     // An ultra-hacky demonstration of inject() and extract() in-process.

@@ -13,7 +13,7 @@ ci_build:
 
 # CircleCI test
 ci_test:
-	mvn exec:java -pl examples
+	mvn exec:java -DLIGHTSTEP_ENABLED=true -DLIGHTSTEP_ACCESS_TOKEN=<youraccesstoken> -DLIGHTSTEP_VERBOSE=3 -pl examples
 
 inc-version:
 	./inc-version.sh
