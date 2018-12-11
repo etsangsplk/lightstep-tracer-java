@@ -8,6 +8,8 @@ import io.opentracing.Tracer;
 import io.opentracing.propagation.Format;
 import io.opentracing.propagation.TextMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.net.MalformedURLException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,6 +20,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class Simple {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Simple.class);
 
     private static final String MESSAGE_KEY = "message";
     private static final String PAYLOAD_KEY = "payload";
@@ -30,7 +34,8 @@ public class Simple {
     public static int LIGHTSTEP_VERBOSITY_DEFAULT = Options.VERBOSITY_INFO;
 
     public static void main(String[] args) throws InterruptedException, MalformedURLException {
-        System.out.println("Starting Simple example...");
+        LOGGER.info("Starting Simple example...");
+
         Map<String, String> config = getSettings();
         String verbose = config.getOrDefault(LIGHTSTEP_ENABLED_ENVVAR, String.valueOf(LIGHTSTEP_VERBOSITY_DEFAULT));
         int verbosity = Integer.parseInt(verbose);
@@ -39,6 +44,7 @@ public class Simple {
                 .withComponentName("java sample")
                 .withVerbosity(verbosity)
                 .build();
+
         final Tracer tracer = new JRETracer(options);
 
         // Create a simple span and delay for a while to ensure the reporting
@@ -110,7 +116,8 @@ public class Simple {
         parentSpan.finish();
 
         ((com.lightstep.tracer.jre.JRETracer) tracer).flush(20000);
-        System.out.println("Done!");
+
+        LOGGER.info("done!");
     }
 
     public static Map<String, String> getSettings() {
